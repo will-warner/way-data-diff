@@ -59,7 +59,7 @@ class TDiffVars(pydantic.BaseModel):
     dev_path: List[str]
     prod_path: List[str]
     primary_keys: List[str]
-    connection: Dict[str, Optional[str]]
+    connection: Dict[str, Optional[str]] = None
     threads: Optional[int] = None
     where_filter: Optional[str] = None
     include_columns: List[str]
