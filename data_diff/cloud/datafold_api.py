@@ -103,8 +103,8 @@ class TCloudApiDataDiff(pydantic.BaseModel):
     pk_columns: List[str]
     filter1: Optional[str] = None
     filter2: Optional[str] = None
-    include_columns: Optional[List[str]]
-    exclude_columns: Optional[List[str]]
+    include_columns: Optional[List[str]] = None
+    exclude_columns: Optional[List[str]] = None
 
 
 class TCloudApiOrgMeta(pydantic.BaseModel):
@@ -150,10 +150,10 @@ class TSummaryResultDependencyDetails(pydantic.BaseModel):
 
 class TCloudApiDataDiffSummaryResult(pydantic.BaseModel):
     status: str
-    pks: Optional[TSummaryResultPrimaryKeyStats]
-    values: Optional[TSummaryResultValueStats]
-    schema_: Optional[TSummaryResultSchemaStats]
-    deps: Optional[TSummaryResultDependencyDetails]
+    pks: Optional[TSummaryResultPrimaryKeyStats] = None
+    values: Optional[TSummaryResultValueStats] = None
+    schema_: Optional[TSummaryResultSchemaStats] = None
+    deps: Optional[TSummaryResultDependencyDetails] = None
 
     @classmethod
     def from_orm(cls, obj: Any) -> Self:
@@ -179,7 +179,7 @@ class TCloudDataSourceTestResult(pydantic.BaseModel):
 class TCloudApiDataSourceTestResult(pydantic.BaseModel):
     name: str
     status: str
-    result: Optional[TCloudDataSourceTestResult]
+    result: Optional[TCloudDataSourceTestResult] = None
 
 
 @attrs.define(frozen=False)

@@ -5,16 +5,16 @@ from pydantic import BaseModel, Field
 
 class ManifestJsonConfig(BaseModel):
     class Metadata(BaseModel):
-        dbt_version: str = Field(..., regex=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
-        project_id: Optional[str]
-        user_id: Optional[str]
+        dbt_version: str = Field(..., pattern=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
+        project_id: Optional[str] = None
+        user_id: Optional[str] = None
+
+    class NodesConfig(BaseModel):
+        database: Optional[str] = None
+        schema_: Optional[str] = Field(..., alias="schema")
+        tags: List[str]
 
     class Nodes(BaseModel):
-        class Config(BaseModel):
-            database: Optional[str]
-            schema_: Optional[str] = Field(..., alias="schema")
-            tags: List[str]
-
         class Column(BaseModel):
             meta: Dict[str, Any]
             tags: List[str]
@@ -35,7 +35,7 @@ class ManifestJsonConfig(BaseModel):
         schema_: str = Field(..., alias="schema")
         columns: Optional[Dict[str, Column]]
         meta: Dict[str, Any]
-        config: Config
+        config: NodesConfig
         tags: List[str]
         test_metadata: Optional[TestMetadata]
         depends_on: DependsOn
@@ -46,7 +46,7 @@ class ManifestJsonConfig(BaseModel):
 
 class RunResultsJsonConfig(BaseModel):
     class Metadata(BaseModel):
-        dbt_version: str = Field(..., regex=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
+        dbt_version: str = Field(..., pattern=r"^\d+\.\d+\.\d+([a-zA-Z0-9]+)?$")
 
     class Results(BaseModel):
         class Status(Enum):
