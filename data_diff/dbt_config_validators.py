@@ -31,13 +31,13 @@ class ManifestJsonConfig(BaseModel):
         resource_type: str
         name: str
         alias: str
-        database: Optional[str]
+        database: Optional[str] = None
         schema_: str = Field(..., alias="schema")
-        columns: Optional[Dict[str, Column]]
+        columns: Optional[Dict[str, Column]] = None
         meta: Dict[str, Any]
         config: NodesConfig
         tags: List[str]
-        test_metadata: Optional[TestMetadata]
+        test_metadata: Optional[TestMetadata] = None
         depends_on: DependsOn
 
     metadata: Metadata
