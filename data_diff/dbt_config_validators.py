@@ -9,12 +9,12 @@ class ManifestJsonConfig(BaseModel):
         project_id: Optional[str] = None
         user_id: Optional[str] = None
 
-    class NodesConfig(BaseModel):
-        database: Optional[str] = None
-        schema_: Optional[str] = Field(..., alias="schema")
-        tags: List[str]
-
     class Nodes(BaseModel):
+        class NodesConfig(BaseModel):
+            database: Optional[str] = None
+            schema_: Optional[str] = Field(..., alias="schema")
+            tags: List[str]
+
         class Column(BaseModel):
             meta: Dict[str, Any]
             tags: List[str]
