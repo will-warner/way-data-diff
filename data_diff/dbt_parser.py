@@ -11,6 +11,8 @@ from pydantic import BaseModel
 from packaging.version import parse as parse_version
 from dbt.config.renderer import ProfileRenderer
 from data_diff.dbt_config_validators import ManifestJsonConfig, RunResultsJsonConfig
+from dbt_common.clients.system import get_env
+from dbt_common.context import set_invocation_context
 
 from data_diff.errors import (
     DataDiffDbtBigQueryUnsupportedMethodError,
@@ -57,6 +59,9 @@ def try_set_dbt_flags() -> None:
         set_flags(Namespace(MACRO_DEBUGGING=False))
     except:
         pass
+
+def set_inv_context():
+    set_invocation_context(get_env())
 
 
 RUN_RESULTS_PATH = "target/run_results.json"
@@ -121,6 +126,7 @@ class DbtParser:
         super().__init__()
 
         try_set_dbt_flags()
+        set_inv_context()
         self.dbt_runner = try_get_dbt_runner()
         self.project_dir = Path(project_dir_override or default_project_dir())
         self.connection = {}
