@@ -10,6 +10,7 @@ from typing import Any, Dict, Set, List, Tuple, Iterator, Optional, Union
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import attrs
+import textwrap
 
 from data_diff.errors import DataDiffMismatchingKeyTypesError
 from data_diff.info_tree import InfoTree, SegmentInfo
@@ -184,6 +185,56 @@ class DiffResultWrapper:
         }
         json_output["values"] = diff_stats.extra_column_diffs or {}
         return json_output
+
+    def get_diff_sql(self, is_dbt: bool = False) -> str:
+
+        if not is_dbt:
+            print("Diff SQL not supported for non-dbt jobs")
+            return ""
+
+        diff_stats = self._get_stats(is_dbt)
+        prod_table = ".".join(i.lower() for i in self.info_tree.info.tables[0].table_path)
+        dev_table = ".".join(i.lower() for i in self.info_tree.info.tables[1].table_path)
+        where = self.info_tree.info.tables[0].where
+        key_columns = [i.lower() for i in self.info_tree.info.tables[0].key_columns]
+        columns_value_changed = [key.lower() for key, value in diff_stats.extra_column_diffs.items() if value > 0]
+        columns = key_columns + columns_value_changed
+
+        select_sql = f"select {', '.join(columns)}"
+        where_sql = f"where {where}" if where is not None else ""
+        full_select_template = "{select_sql} from {table} {where}"
+        prod_sql = full_select_template.format(select_sql=select_sql, table=prod_table, where=where_sql)
+        dev_sql = full_select_template.format(select_sql=select_sql, table=dev_table, where=where_sql)
+        equality_sql = textwrap.dedent(f"""
+        with a as (
+            {prod_sql}
+        ),
+        b as (
+            {dev_sql}
+        ),
+        a_minus_b as (
+            select * from a
+            except
+            select * from b
+        ),
+        b_minus_a as (
+            select * from b
+            except
+            select * from a
+        ),
+        unioned as (
+            select 'prod' as which_diff, a_minus_b.* from a_minus_b
+            union all
+            select 'dev' as which_diff, b_minus_a.* from b_minus_a
+        )
+        select * from unioned order by {', '.join(key_columns)}, which_diff
+        """)
+
+        string_output = ""
+        string_output += "----- Diff SQL -----"
+        string_output += equality_sql
+
+        return string_output
 
 
 @attrs.define(frozen=False)
