@@ -279,6 +279,11 @@ click.Context.formatter_class = MyHelpFormatter
     default=None,
     help="Override the dbt production schema configuration within dbt_project.yml",
 )
+@click.option(
+    "--diff-sql",
+    is_flag=True,
+    help="Prints SQL needed to visualise diff between tables. dbt only",
+)
 def main(conf, run, **kw) -> None:
     log_handlers = _get_log_handlers(kw["dbt"])
     if kw["table2"] is None and kw["database2"]:
@@ -337,6 +342,7 @@ def main(conf, run, **kw) -> None:
                 columns_flag=kw["columns"],
                 production_database_flag=kw["prod_database"],
                 production_schema_flag=kw["prod_schema"],
+                diff_sql_flag=kw["diff_sql"],
             )
         else:
             _data_diff(dbt_project_dir=project_dir_override, dbt_profiles_dir=profiles_dir_override, state=state, **kw)

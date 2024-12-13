@@ -66,6 +66,7 @@ class TDiffVars(pydantic.BaseModel):
     exclude_columns: List[str]
     dbt_model: Optional[str] = None
     stats_flag: bool = False
+    diff_sql_flag: bool = False
 
 
 def dbt_diff(
@@ -81,6 +82,7 @@ def dbt_diff(
     columns_flag: Optional[Tuple[str]] = None,
     production_database_flag: Optional[str] = None,
     production_schema_flag: Optional[str] = None,
+    diff_sql_flag: bool = False,
 ) -> None:
     print_version_info()
     set_entrypoint_name(os.getenv("DATAFOLD_TRIGGERED_BY", "CLI-dbt"))
@@ -132,6 +134,7 @@ def dbt_diff(
                 columns_flag,
                 production_database_flag,
                 production_schema_flag,
+                diff_sql_flag
             )
 
             # we won't always have a prod path when using state
@@ -190,6 +193,7 @@ def _get_diff_vars(
     columns_flag: Optional[Tuple[str]] = None,
     production_database_flag: Optional[str] = None,
     production_schema_flag: Optional[str] = None,
+    diff_sql_flag: bool = False,
 ) -> TDiffVars:
     cli_columns = list(columns_flag) if columns_flag else []
     dev_database = model.database
@@ -229,6 +233,7 @@ def _get_diff_vars(
         include_columns=cli_columns or datadiff_model_config.include_columns,
         exclude_columns=[] if cli_columns else datadiff_model_config.exclude_columns,
         stats_flag=stats_flag,
+        diff_sql_flag=diff_sql_flag,
     )
 
 
@@ -391,6 +396,9 @@ def _local_diff(
     if list(diff):
         diff_output_str += f"{diff.get_stats_string(is_dbt=True)} \n"
         rich.print(diff_output_str)
+        if diff_vars.diff_sql_flag:
+            diff_sql = diff.get_diff_sql(is_dbt=True)
+            rich.print(diff_sql)
     else:
         diff_output_str += no_differences_template()
         rich.print(diff_output_str)
